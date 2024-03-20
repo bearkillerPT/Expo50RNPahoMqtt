@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Client, Message } from "react-native-paho-mqtt";
 
@@ -15,6 +15,7 @@ const myStorage: any = {
 };
 
 export default function App() {
+  const [connectionStatus, setConnectionStatus] = useState("Disconnected");
   useEffect(() => {
     // Create a client instance
     const client = new Client({
@@ -27,6 +28,7 @@ export default function App() {
     client.on(
       "connectionLost",
       (responseObject: { errorCode: number; errorMessage: string }) => {
+        setConnectionStatus("Disconnected");
         if (responseObject.errorCode !== 0) {
           console.log(responseObject.errorMessage);
         }
@@ -41,11 +43,13 @@ export default function App() {
     client
       .connect()
       .then(() => {
+        setConnectionStatus("Connected");
         // Once a connection has been made, make a subscription and send a message.
         console.log("onConnect");
         return client.subscribe("$SYS/#");
       })
       .catch((responseObject: { errorCode: number; errorMessage: string }) => {
+        setConnectionStatus("Disconnected");
         if (responseObject.errorCode !== 0) {
           console.log("onConnectionLost:" + responseObject.errorMessage);
         }
@@ -54,7 +58,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      <Text>Connection status {connectionStatus}</Text>
       <StatusBar style="auto" />
     </View>
   );
